@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 
 # -------------------------------------------------
@@ -48,20 +47,16 @@ else:
     text = "#f1f5f9"
 
 # -------------------------------------------------
-# CSS (FIXED BACKGROUND)
+# CSS
 # -------------------------------------------------
 st.markdown(f"""
 <style>
 .stApp {{
-    background-color: {bg} !important;
-    background-image:
-        radial-gradient(circle at 20% 20%, {accent}25, transparent 40%),
-        radial-gradient(circle at 80% 0%, {accent}20, transparent 40%),
-        radial-gradient(circle at 0% 80%, {accent}15, transparent 40%);
+    background-color: {bg};
 }}
 
 [data-testid="stSidebar"] {{
-    background-color: {card} !important;
+    background-color: {card};
 }}
 
 .card {{
@@ -69,7 +64,7 @@ st.markdown(f"""
     border-radius: 18px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
 }}
 
 .metric {{
@@ -80,7 +75,7 @@ st.markdown(f"""
 }}
 
 h1, h2, h3, h4, p, label {{
-    color: {text} !important;
+    color: {text};
 }}
 
 .stButton > button {{
@@ -111,14 +106,14 @@ if "students" not in st.session_state:
     )
 
 # -------------------------------------------------
-# DATA INPUT SECTION
+# DATA INPUT
 # -------------------------------------------------
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown("## 📥 Add Student Data")
 
 tab1, tab2, tab3 = st.tabs(["📂 Upload CSV", "✍️ Manual Entry", "🎲 Auto Generate"])
 
-# -------- CSV UPLOAD --------
+# CSV UPLOAD
 with tab1:
     file = st.file_uploader("Upload CSV File", type=["csv"])
     if file:
@@ -132,7 +127,7 @@ with tab1:
         else:
             st.error("❌ CSV columns are incorrect")
 
-# -------- MANUAL ENTRY --------
+# MANUAL ENTRY
 with tab2:
     with st.form("manual_form"):
         name = st.text_input("Student Name")
@@ -151,7 +146,7 @@ with tab2:
             )
             st.success("✅ Student Added")
 
-# -------- AUTO GENERATE --------
+# AUTO GENERATE
 with tab3:
     if st.button("Generate 30 Students"):
         data = []
@@ -159,8 +154,9 @@ with tab3:
             hrs = round(np.random.uniform(1, 10), 1)
             scr = min(100, max(35, 40 + hrs * 4 + np.random.normal(0, 8)))
             data.append([
-                f"Student {i+1}", f"R{i+1}", random.choice(["Maths","CS","Physics"]),
-                hrs, round(scr,1)
+                f"Student {i+1}", f"R{i+1}",
+                random.choice(["Maths", "CS", "Physics"]),
+                hrs, round(scr, 1)
             ])
         auto_df = pd.DataFrame(data, columns=st.session_state.students.columns)
         st.session_state.students = pd.concat(
@@ -171,7 +167,7 @@ with tab3:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------
-# ANALYSIS SECTION
+# ANALYSIS
 # -------------------------------------------------
 if not st.session_state.students.empty:
     df = st.session_state.students
@@ -194,21 +190,14 @@ if not st.session_state.students.empty:
     st.dataframe(df, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # GRAPH
+    # GRAPH (NO MATPLOTLIB)
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("## 📈 Study Hours vs Final Score")
 
-    fig, ax = plt.subplots(figsize=(10,5))
-    ax.scatter(df["Study Hours"], df["Final Score"], alpha=0.7)
-    z = np.polyfit(df["Study Hours"], df["Final Score"], 1)
-    ax.plot(df["Study Hours"], np.poly1d(z)(df["Study Hours"]), linestyle="--")
-    ax.set_xlabel("Study Hours")
-    ax.set_ylabel("Final Score")
-    ax.grid(alpha=0.3)
-    st.pyplot(fig)
+    chart_df = df[["Study Hours", "Final Score"]].set_index("Study Hours")
+    st.scatter_chart(chart_df)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
     st.info("👆 Add data using CSV, manual entry or auto-generate")
-
